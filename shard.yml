@@ -19,5 +19,8 @@ development_dependencies:
   spec2-mocks:
     github: waterlink/spec2-mocks.cr
     version: ~> 0.4
+  mocks:
+    github: waterlink/mocks.cr
+    version: ~> 0.9
 
 license: MIT
