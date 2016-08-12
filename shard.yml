@@ -1,0 +1,23 @@
+name: crOpenCL
+version: 0.1.0
+
+authors:
+  - Chase Conklin <chase@conklins.net>
+
+description: |
+  OpenCL bindings for Ctystal
+
+# dependencies:
+#   pg:
+#     github: will/crystal-pg
+#     version: "~> 0.5"
+
+development_dependencies:
+  spec2:
+    github: waterlink/spec2.cr
+    version: ~> 0.9
+  spec2-mocks:
+    github: waterlink/spec2-mocks.cr
+    version: ~> 0.4
+
+license: MIT
