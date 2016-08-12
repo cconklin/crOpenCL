@@ -13,6 +13,8 @@ dependencies:
     github: cconklin/crOpenCL
 ```
 
+Currently only supports Mac OS
+
 
 ## Usage
 
