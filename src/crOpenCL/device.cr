@@ -50,13 +50,18 @@ module CrOpenCL
     end
 
     private def get_info_string(param : DeviceParameters)
-      err = LibOpenCL.clGetDeviceInfo(@id, DeviceParameters::OpenCLVersion, 0, nil, out size)
+      # Get the size of the C string to be returned from OpenCL
+      err = LibOpenCL.clGetDeviceInfo(@id, param, 0, nil, out size)
       raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
 
+      # Allocate a buffer large enough to hold the string
       str = Slice(UInt8).new(size)
-      err = LibOpenCL.clGetDeviceInfo(@id, DeviceParameters::OpenCLVersion, size, str, nil)
+      # Get the value from OpenCL
+      err = LibOpenCL.clGetDeviceInfo(@id, param, size, str, nil)
       raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
-      return String.new(str[0, size-1])
+      # C strings are null terminated, Crystal's are not: remove the last character (null terminator)
+      # Sometimes the string from OpenCL ends in a space. Strip it away
+      return String.new(str[0, size-1]).strip
     end
 
     def to_unsafe
@@ -64,12 +69,14 @@ module CrOpenCL
     end
 
     def self.all(device_type = DeviceTypes::All)
+      # Get devices on platform 0
+      # TODO: support more platforms
       err = LibOpenCL.clGetDeviceIDs(0.to_u64.as(LibOpenCL::PlatformID), device_type.to_i64, 0, nil, out num_devices)
       raise CLError.new("clGetDeviceIDs failed.") unless err == CL_SUCCESS
 
       device_ids = Slice(UInt64).new(num_devices)
 
-      err = LibOpenCL.clGetDeviceIDs(0.to_u64.as(LibOpenCL::PlatformID), device_type.to_i64, num_devices, device_ids.to_unsafe.as(Pointer(CrOpenCL::LibOpenCL::DeviceID)), nil)
+      err = LibOpenCL.clGetDeviceIDs(0.to_u64.as(LibOpenCL::PlatformID), device_type.to_i64, num_devices, device_ids, nil)
       raise CLError.new("clGetDeviceIDs failed.") unless err == CL_SUCCESS
 
       device_ids.map {|id| new(id) }
