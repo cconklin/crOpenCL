@@ -28,6 +28,8 @@ module CrOpenCL
 
   class Device
 
+    getter :name, :hardware_version, :software_version, :c_version, :max_compute_units
+
     @id : LibOpenCL::DeviceID
     @name = ""
     @hardware_version = ""
