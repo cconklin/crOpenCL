@@ -47,7 +47,16 @@ module CrOpenCL
       return value
     end
 
-    # Future:
-    # set_arguments
+    # method_missing seems to be the only way to get a macro as a method with AST arguments
+    macro method_missing(call)
+      {% if call.name == "set_arguments" %}
+        {% for arg, index in call.args %}
+          set_argument({{index}}, {{arg}})
+        {% end %}
+      {% else %}
+        # TODO Find a way to get the source line and file in the error message
+        {{ raise "Invalid kernel method: " + call.name.stringify }}
+      {% end %}
+    end
   end
 end
