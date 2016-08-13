@@ -16,7 +16,7 @@ module CrOpenCL
 
     # Programs
     fun clCreateProgramWithSource(context : Context, count : UInt32, strings : UInt8**, lengths : UInt8*, errcode_ret : Int32*) : Program
-    fun clBuildProgram(program : Program, num_devices : UInt32, device_list : DeviceID*, options : UInt8*, pfn_notify : (Program, Void* -> Void)) : Int32
+    fun clBuildProgram(program : Program, num_devices : UInt32, device_list : DeviceID*, options : UInt8*, pfn_notify : (Program, Void* -> Void), user_data : Void*) : Int32
     # FIXME: param_name is actrually a cl_program_build_info enum
     fun clGetProgramBuildInfo(program : Program, device : DeviceID, param_name : Int64, param_value_size : UInt64, param_value : Void*, param_value_size_ret : UInt64*) : Int32
     fun clReleaseProgram(program : Program) : Int32
