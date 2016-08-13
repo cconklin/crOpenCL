@@ -45,10 +45,10 @@ module CrOpenCL
     # FIXME: flags is actually a cl_mem_flags enum
     fun clCreateBuffer(context : Context, flags : UInt64, size : UInt64, host_ptr : Void*, errcode_ret : Int32*) : Mem
     # FIXME: blocking_write is a cl_bool enum
-    fun clEnqueueWriteBuffer(command_queue : CommandQueue, buffer : Mem, blocking_write : Int64, offset : UInt64, cb : UInt64, ptr : Void*,
+    fun clEnqueueWriteBuffer(command_queue : CommandQueue, buffer : Mem, blocking_write : Int32, offset : UInt64, cb : UInt64, ptr : Void*,
                              num_events_in_wait_list : UInt32, event_wait_list : Event*, event : Event) : Int32
     # FIXME: blocking_read is a cl_bool enum
-    fun clEnqueueReadBuffer(command_queue : CommandQueue, buffer : Mem, blocking_read : Int64, offset : UInt64, cb : UInt64, ptr : Void*,
+    fun clEnqueueReadBuffer(command_queue : CommandQueue, buffer : Mem, blocking_read : Int32, offset : UInt64, cb : UInt64, ptr : Void*,
                             num_events_in_wait_list : UInt32, event_wait_list : Event*, event : Event) : Int32
     fun clReleaseMemObject(memobj : Mem) : Int32
 
