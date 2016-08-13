@@ -30,6 +30,7 @@ module CrOpenCL
     # FIXME: properties is actually a cl_command_queue_properties enum
     fun clCreateCommandQueue(context : Context, device : DeviceID, properties : Int64, errcode_ret : Int32*) : CommandQueue
     fun clReleaseCommandQueue(command_queue : CommandQueue) : Int32
+    fun clFinish(command_queue : CommandQueue) : Int32
 
     # Kernels
     fun clCreateKernel(program : Program, kernel_name : UInt8*, errcode_ret : Int32*) : Kernel

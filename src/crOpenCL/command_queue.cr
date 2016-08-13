@@ -21,6 +21,12 @@ module CrOpenCL
       raise CLError.new("clCreateCommandQueue failed.") unless err == CL_SUCCESS
     end
 
+    def synchronize
+      unless LibOpenCL.clFinish(@command_queue) == CL_SUCCESS
+        raise CLError.new("clFinish failed.")
+      end
+    end
+
     def to_unsafe
       @command_queue
     end
