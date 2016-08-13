@@ -20,6 +20,7 @@ module CrOpenCL
     DriverVersion = 4141
     OpenCLVersion = 4157
     MaxComputeUnits = 4098
+    MaxWorkGroupSize = 4100
 
     def to_unsafe
       to_i64
@@ -28,7 +29,7 @@ module CrOpenCL
 
   class Device
 
-    getter :name, :hardware_version, :software_version, :c_version, :max_compute_units
+    getter :name, :hardware_version, :software_version, :c_version, :max_compute_units, :max_work_group_size
 
     @id : LibOpenCL::DeviceID
     @name = ""
@@ -36,6 +37,7 @@ module CrOpenCL
     @software_version = ""
     @c_version = ""
     @max_compute_units : UInt32
+    @max_work_group_size : UInt64
 
     def initialize(id : UInt64)
       @id = id.as(LibOpenCL::DeviceID)
@@ -44,6 +46,11 @@ module CrOpenCL
       err = LibOpenCL.clGetDeviceInfo(@id, DeviceParameters::MaxComputeUnits, sizeof(UInt32), pointerof(max_compute_units), nil)
       raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
       @max_compute_units = max_compute_units
+
+      max_work_group_size = uninitialized UInt64
+      err = LibOpenCL.clGetDeviceInfo(@id, DeviceParameters::MaxWorkGroupSize, sizeof(UInt64), pointerof(max_work_group_size), nil)
+      raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
+      @max_work_group_size = max_work_group_size
 
       @name = get_info_string(DeviceParameters::Name)
       @hardware_version = get_info_string(DeviceParameters::DeviceVersion)
