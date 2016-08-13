@@ -5,6 +5,8 @@ module CrOpenCL
 
   class Context
 
+    getter :device
+
     # Create a new context on device
     # Currently only supports one device
     # Currently no callbacks
