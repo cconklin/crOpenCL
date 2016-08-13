@@ -4,6 +4,8 @@ module CrOpenCL
 
   class CommandQueue
 
+    getter :device
+
     # Use actual OpenCL properties
     enum Properties
       Default = 0
