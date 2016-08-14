@@ -42,7 +42,7 @@ module CrOpenCL
     def get_work_group_info(param_name : KernelParams)
       # Note: Some other params may have a size different that that of UInt64
       value = uninitialized UInt64
-      err = LibOpenCL.clGetKernelWorkGroupInfo(@kernel, @queue.device, param_name, sizeof(typeof(value)), pointerof(value), nil)
+      err = LibOpenCL.clGetKernelWorkGroupInfo(@kernel, @program.device, param_name, sizeof(typeof(value)), pointerof(value), nil)
       raise CLError.new("clGetKernelWorkGroupInfo failed.") unless err == CL_SUCCESS
       return value
     end
