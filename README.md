@@ -23,7 +23,9 @@ Currently only supports Mac OS
 require "crOpenCL"
 ```
 
-Might require more than that.
+## Issues
+
+1. Can't develop tests to verify the interaction with the C libs, as mocks don't support it yet.
 
 ## Contributing
 
