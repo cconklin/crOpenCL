@@ -46,12 +46,12 @@ module CrOpenCL
       end
     end
 
-    def set(queue : CommandQueue, hostbuf : Array(T), blocking = false, event : (Event | Nil) = nil)
+    def set(queue : CommandQueue, *, hostbuf : Array(T), blocking = false, event : (Event | Nil) = nil)
       slice = Slice(T).new(hostbuf.to_unsafe, hostbuf.size)
       Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event)
     end
 
-    def set(queue : CommandQueue, blocking = false, event : (Event | Nil) = nil)
+    def set(queue : CommandQueue, *, blocking = false, event : (Event | Nil) = nil)
       raise CLError.new("No host buffer to copy.") if @hostbuf.nil?
       slice = Slice(T).new(@hostbuf.as(Array(T)).to_unsafe, @hostbuf.as(Array(T)).size)
       Buffer(T).enqueue_copy(queue, slice, self, slice.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event)
@@ -63,12 +63,12 @@ module CrOpenCL
       nil
     end
 
-    def get(queue : CommandQueue, hostbuf : Array(T), event : (Event | Nil) = nil)
+    def get(queue : CommandQueue, hostbuf : Array(T), *, event : (Event | Nil) = nil)
       get(queue, hostbuf, blocking: true, event: event)
       return hostbuf
     end
 
-    def get(queue : CommandQueue, event : (Event | Nil) = nil)
+    def get(queue : CommandQueue, *, event : (Event | Nil) = nil)
       if @hostbuf.nil?
         # Doing this instead of creating the array directly gives the array the correct size
         # i.e. the array knows it has @length elements
