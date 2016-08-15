@@ -35,47 +35,47 @@ module CrOpenCL
       raise CLError.new("clCreateBuffer failed.") unless alloc_err == CL_SUCCESS
     end
 
-    def self.enqueue_copy(queue : CommandQueue, hostbuf : Slice(T), devbuf : Buffer, length : UInt64, direction : Transfer, *, blocking = false)
+    def self.enqueue_copy(queue : CommandQueue, hostbuf : Slice(T), devbuf : Buffer, length : UInt64, direction : Transfer, *, blocking = false, event : (Event | Nil) = nil)
       blocking = blocking ? 1 : 0
       if direction == Transfer::ToHost
-        err = LibOpenCL.clEnqueueReadBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T),  hostbuf , 0 , nil, nil)
+        err = LibOpenCL.clEnqueueReadBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T),  hostbuf , 0 , nil, event)
         raise CLError.new("clEnqueueWriteBuffer failed.") unless err == CL_SUCCESS
       else
-        err = LibOpenCL.clEnqueueWriteBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, 0 , nil, nil)
+        err = LibOpenCL.clEnqueueWriteBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, 0 , nil, event)
         raise CLError.new("clEnqueueWriteBuffer failed.") unless err == CL_SUCCESS
       end
     end
 
-    def set(queue : CommandQueue, hostbuf : Array(T), blocking = false)
+    def set(queue : CommandQueue, hostbuf : Array(T), blocking = false, event : (Event | Nil) = nil)
       slice = Slice(T).new(hostbuf.to_unsafe, hostbuf.size)
-      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToDevice, blocking: blocking)
+      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event)
     end
 
-    def set(queue : CommandQueue, blocking = false)
+    def set(queue : CommandQueue, blocking = false, event : (Event | Nil) = nil)
       raise CLError.new("No host buffer to copy.") if @hostbuf.nil?
       slice = Slice(T).new(@hostbuf.as(Array(T)).to_unsafe, @hostbuf.as(Array(T)).size)
-      Buffer(T).enqueue_copy(queue, slice, self, slice.size.to_u64, Transfer::ToDevice, blocking: blocking)
+      Buffer(T).enqueue_copy(queue, slice, self, slice.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event)
     end
 
-    def get(queue : CommandQueue, hostbuf : Array(T), *, blocking : Bool)
+    def get(queue : CommandQueue, hostbuf : Array(T), *, blocking : Bool, event : (Event | Nil) = nil)
       slice = Slice(T).new(hostbuf.to_unsafe, hostbuf.size)
-      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToHost, blocking: blocking)
+      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToHost, blocking: blocking, event: event)
       nil
     end
 
-    def get(queue : CommandQueue, hostbuf : Array(T))
-      get(queue, hostbuf, blocking: true)
+    def get(queue : CommandQueue, hostbuf : Array(T), event : (Event | Nil) = nil)
+      get(queue, hostbuf, blocking: true, event: event)
       return hostbuf
     end
 
-    def get(queue : CommandQueue)
+    def get(queue : CommandQueue, event : (Event | Nil) = nil)
       if @hostbuf.nil?
         # Doing this instead of creating the array directly gives the array the correct size
         # i.e. the array knows it has @length elements
         buf = Slice(T).new(@length).to_a
-        get(queue, buf)
+        get(queue, buf, event: event)
       else
-        get(queue, @hostbuf.as(Array(T)))
+        get(queue, @hostbuf.as(Array(T)), event: event)
       end
     end
 

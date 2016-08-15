@@ -38,11 +38,10 @@ module CrOpenCL
 
     macro method_missing(call)
       %kernel = CrOpenCL::Kernel.new(self, {{call.name.stringify}})
-      %kernel.set_arguments({{ *call.args[2..-1] }})
-      %gwgs = {{ call.args[1] }}
-      %lwgs = %kernel.get_work_group_info(KernelParams::WorkGroupSize)
+      %kernel.set_arguments({{ *call.args[3..-1] }})
+      %lwgs, %gwgs = %kernel.automatic_work_group_sizes({{ call.args[1] }}.to_i32)
       # Process work group size
-      %kernel.enqueue({{ call.args[0] }}, local_work_size: 3, global_work_size: {{ call.args[1] }})
+      %kernel.enqueue({{ call.args[0] }}, local_work_size:  %lwgs.to_i32, global_work_size: %gwgs.to_i32, event: {{ call.args[2] }})
     end
 
   end

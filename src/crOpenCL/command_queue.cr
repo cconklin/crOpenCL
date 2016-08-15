@@ -9,6 +9,7 @@ module CrOpenCL
     # Use actual OpenCL properties
     enum Properties
       Default = 0
+      EnableProfiling = 2
 
       def to_unsafe
         to_i64
@@ -18,8 +19,8 @@ module CrOpenCL
     @command_queue : LibOpenCL::CommandQueue
 
     # TODO: Add support for poperties
-    def initialize(@context : Context, @device : Device)
-      @command_queue = LibOpenCL.clCreateCommandQueue(@context, @device, Properties::Default, out err)
+    def initialize(@context : Context, @device : Device, properties = Properties::Default)
+      @command_queue = LibOpenCL.clCreateCommandQueue(@context, @device, properties, out err)
       raise CLError.new("clCreateCommandQueue failed.") unless err == CL_SUCCESS
     end
 

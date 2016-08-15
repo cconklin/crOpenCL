@@ -31,11 +31,11 @@ module CrOpenCL
       LibOpenCL.clReleaseKernel(@kernel)
     end
 
-    def enqueue(queue : CommandQueue, *, global_work_size : Int32, local_work_size : Int32)
+    def enqueue(queue : CommandQueue, *, global_work_size : Int32, local_work_size : Int32, event : (Event | Nil) = nil)
       lws = local_work_size.to_u64
       gws = global_work_size.to_u64
       # TODO add support for different dimensions, event wait lists & events
-      err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, 1, nil, pointerof(gws), pointerof(lws), 0, nil, nil)
+      err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, 1, nil, pointerof(gws), pointerof(lws), 0, nil, event)
       raise CLError.new("clEnqueueNDRangeKernel failed.") unless err == CL_SUCCESS
     end
 
@@ -45,6 +45,19 @@ module CrOpenCL
       err = LibOpenCL.clGetKernelWorkGroupInfo(@kernel, @program.device, param_name, sizeof(typeof(value)), pointerof(value), nil)
       raise CLError.new("clGetKernelWorkGroupInfo failed.") unless err == CL_SUCCESS
       return value
+    end
+
+    def automatic_work_group_sizes(requested_gwgs : Int32)
+      max_lwgs = get_work_group_info(KernelParams::WorkGroupSize)
+      if requested_gwgs % max_lwgs == 0
+        # they divide each other -- good to go
+        return max_lwgs, requested_gwgs
+      else
+        # Currently making the global work group size larger to be divisible
+        # should the local work group size be made smaller instead? -- easier on programmer but lower performance
+        gwgs = (requested_gwgs / max_lwgs + 1) * max_lwgs
+        return max_lwgs, gwgs
+      end
     end
 
     # method_missing seems to be the only way to get a macro as a method with AST arguments

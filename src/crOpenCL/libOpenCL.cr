@@ -1,5 +1,17 @@
 module CrOpenCL
   CL_SUCCESS = 0
+  CL_INVALID_EVENT = -58
+  CL_PROFILING_INFO_NOT_AVAILABLE = -7
+  CL_PROFILING_COMMAND_QUEUED = 4736i64
+  CL_PROFILING_COMMAND_SUBMIT = 4737i64
+  CL_PROFILING_COMMAND_START = 4738i64
+  CL_PROFILING_COMMAND_END = 4739i64
+  CL_EVENT_COMMAND_EXECUTION_STATUS = 4563i64
+  CL_COMPLETE = 0
+  CL_RUNNING = 1
+  CL_SUBMITTED = 2
+  CL_QUEUED = 3
+
   @[Link(framework: "OpenCL")]
   lib LibOpenCL
     # Investigate actual types in OpenCL
@@ -55,6 +67,8 @@ module CrOpenCL
     # Events
     # FIXME: param_name is actually a cl_profiling_info enum
     fun clGetEventProfilingInfo(event : Event, param_name : Int64, param_value_size : UInt64, param_value : Void*, param_value_size_ret : UInt64*) : Int32
+    fun clGetEventInfo(event : Event, param_name : Int64, param_value_size : UInt64, param_value : Void*, param_value_size_ret : UInt64*) : Int32
+    fun clReleaseEvent(event : Event)
 
     # Device
     # FIXME: device_type is a cl_device_type enum
