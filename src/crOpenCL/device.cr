@@ -77,7 +77,7 @@ module CrOpenCL
       @id
     end
 
-    def self.all(device_type = DeviceTypes::All)
+    def self.each(device_type = DeviceTypes::All)
       # Get devices on platform 0
       # TODO: support more platforms
       err = LibOpenCL.clGetDeviceIDs(0.to_u64.as(LibOpenCL::PlatformID), device_type.to_i64, 0, nil, out num_devices)
@@ -88,7 +88,15 @@ module CrOpenCL
       err = LibOpenCL.clGetDeviceIDs(0.to_u64.as(LibOpenCL::PlatformID), device_type.to_i64, num_devices, device_ids, nil)
       raise CLError.new("clGetDeviceIDs failed.") unless err == CL_SUCCESS
 
-      device_ids.map {|id| new(id) }
+      device_ids.each {|id| yield new(id) }
+    end
+
+    def self.all(device_type = DeviceTypes::All)
+      devices = [] of Device
+      each do |device|
+        devices << device
+      end
+      devices
     end
   end
 end
