@@ -3,6 +3,8 @@ require "./libOpenCL.cr"
 module CrOpenCL
   class Event
 
+    getter :name
+
     enum ExecutionStatus
       Queued
       Submitted
@@ -11,7 +13,7 @@ module CrOpenCL
       Error
     end
 
-    def initialize
+    def initialize(@name : String)
       @event = uninitialized LibOpenCL::Event
     end
 
