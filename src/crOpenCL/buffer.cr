@@ -35,47 +35,52 @@ module CrOpenCL
       raise CLError.new("clCreateBuffer failed.") unless alloc_err == CL_SUCCESS
     end
 
-    def self.enqueue_copy(queue : CommandQueue, hostbuf : Slice(T), devbuf : Buffer, length : UInt64, direction : Transfer, *, blocking = false, event : (Event | Nil) = nil)
+    def self.enqueue_copy(queue : CommandQueue, hostbuf : Slice(T), devbuf : Buffer, length : UInt64, direction : Transfer, *, blocking = false, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
       blocking = blocking ? 1 : 0
+      event_wait_list ||= Array(Event).new
+      ewl_size = event_wait_list.size
+      # If there is an event wait list, make it into the right type
+      # Otherwise, it should be NULL (as per OpenCL)
+      ewl = ewl_size > 0 ? event_wait_list.map(&.to_unsafe_value).to_unsafe : Pointer(Pointer(Void)).null
       if direction == Transfer::ToHost
-        err = LibOpenCL.clEnqueueReadBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T),  hostbuf , 0 , nil, event)
+        err = LibOpenCL.clEnqueueReadBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, ewl_size, ewl, event)
         raise CLError.new("clEnqueueWriteBuffer failed.") unless err == CL_SUCCESS
       else
-        err = LibOpenCL.clEnqueueWriteBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, 0 , nil, event)
+        err = LibOpenCL.clEnqueueWriteBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, ewl_size, ewl, event)
         raise CLError.new("clEnqueueWriteBuffer failed.") unless err == CL_SUCCESS
       end
     end
 
-    def set(queue : CommandQueue, *, hostbuf : Array(T), blocking = false, event : (Event | Nil) = nil)
+    def set(queue : CommandQueue, *, hostbuf : Array(T), blocking = false, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
       slice = Slice(T).new(hostbuf.to_unsafe, hostbuf.size)
-      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event)
+      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event, event_wait_list: event_wait_list)
     end
 
-    def set(queue : CommandQueue, *, blocking = false, event : (Event | Nil) = nil)
+    def set(queue : CommandQueue, *, blocking = false, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
       raise CLError.new("No host buffer to copy.") if @hostbuf.nil?
       slice = Slice(T).new(@hostbuf.as(Array(T)).to_unsafe, @hostbuf.as(Array(T)).size)
-      Buffer(T).enqueue_copy(queue, slice, self, slice.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event)
+      Buffer(T).enqueue_copy(queue, slice, self, slice.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event, event_wait_list: event_wait_list)
     end
 
-    def get(queue : CommandQueue, hostbuf : Array(T), *, blocking : Bool, event : (Event | Nil) = nil)
+    def get(queue : CommandQueue, hostbuf : Array(T), *, blocking : Bool, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
       slice = Slice(T).new(hostbuf.to_unsafe, hostbuf.size)
-      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToHost, blocking: blocking, event: event)
+      Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToHost, blocking: blocking, event: event, event_wait_list: event_wait_list)
       nil
     end
 
-    def get(queue : CommandQueue, hostbuf : Array(T), *, event : (Event | Nil) = nil)
-      get(queue, hostbuf, blocking: true, event: event)
+    def get(queue : CommandQueue, hostbuf : Array(T), *, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+      get(queue, hostbuf, blocking: true, event: event, event_wait_list: event_wait_list)
       return hostbuf
     end
 
-    def get(queue : CommandQueue, *, event : (Event | Nil) = nil)
+    def get(queue : CommandQueue, *, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
       if @hostbuf.nil?
         # Doing this instead of creating the array directly gives the array the correct size
         # i.e. the array knows it has @length elements
         buf = Slice(T).new(@length).to_a
-        get(queue, buf, event: event)
+        get(queue, buf, event: event, event_wait_list: event_wait_list)
       else
-        get(queue, @hostbuf.as(Array(T)), event: event)
+        get(queue, @hostbuf.as(Array(T)), event: event, event_wait_list: event_wait_list)
       end
     end
 

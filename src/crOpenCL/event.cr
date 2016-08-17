@@ -65,6 +65,10 @@ module CrOpenCL
       pointerof(@event)
     end
 
+    def to_unsafe_value
+      @event
+    end
+
     def finalize
       LibOpenCL.clReleaseEvent(@event)
     end

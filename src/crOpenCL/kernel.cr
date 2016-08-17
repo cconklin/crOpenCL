@@ -31,11 +31,14 @@ module CrOpenCL
       LibOpenCL.clReleaseKernel(@kernel)
     end
 
-    def enqueue(queue : CommandQueue, *, global_work_size : Int32, local_work_size : Int32, event : (Event | Nil) = nil)
+    def enqueue(queue : CommandQueue, *, global_work_size : Int32, local_work_size : Int32, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
       lws = local_work_size.to_u64
       gws = global_work_size.to_u64
-      # TODO add support for different dimensions, event wait lists & events
-      err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, 1, nil, pointerof(gws), pointerof(lws), 0, nil, event)
+      # Doing this rather than make the default argument this to allow for passing nil explicitly (as is done in actual OpenCL)
+      event_wait_list ||= Array(Event).new
+      ewl_size = event_wait_list.size
+      ewl = ewl_size > 0 ? event_wait_list.map(&.to_unsafe_value).to_unsafe : Pointer(Pointer(Void)).null
+      err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, 1, nil, pointerof(gws), pointerof(lws), ewl_size, ewl, event)
       raise CLError.new("clEnqueueNDRangeKernel failed.") unless err == CL_SUCCESS
     end
 
