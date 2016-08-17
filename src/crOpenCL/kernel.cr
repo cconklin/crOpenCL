@@ -17,6 +17,12 @@ module CrOpenCL
       raise CLError.new("clCreateKernel failed.") unless err == CL_SUCCESS
     end
 
+    def set_argument(index : Int32, mem : LocalMemory)
+      mem.default(local_work_group_size)
+      err = LibOpenCL.clSetKernelArg(@kernel, index, mem.size, nil)
+      raise CLError.new("clSetKernelArg failed.") unless err == CL_SUCCESS
+    end
+
     def set_argument(index : Int32, value)
       val = value.responds_to?(:to_unsafe) ? value.to_unsafe : value
       err = LibOpenCL.clSetKernelArg(@kernel, index, sizeof(typeof(value)), pointerof(val))
@@ -50,8 +56,12 @@ module CrOpenCL
       return value
     end
 
+    def local_work_group_size
+      get_work_group_info(KernelParams::WorkGroupSize)
+    end
+
     def automatic_work_group_sizes(requested_gwgs : Int32)
-      max_lwgs = get_work_group_info(KernelParams::WorkGroupSize)
+      max_lwgs = local_work_group_size
       if requested_gwgs % max_lwgs == 0
         # they divide each other -- good to go
         return max_lwgs, requested_gwgs
