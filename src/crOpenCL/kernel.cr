@@ -31,7 +31,7 @@ module CrOpenCL
       LibOpenCL.clReleaseKernel(@kernel)
     end
 
-    def enqueue(queue : CommandQueue, *, global_work_size : Int32, local_work_size : Int32, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+    def enqueue(queue : CommandQueue, *, global_work_size : Int32, local_work_size : Int32, event : Event? = nil, event_wait_list : Array(Event)? = nil)
       lws = local_work_size.to_u64
       gws = global_work_size.to_u64
       # Doing this rather than make the default argument this to allow for passing nil explicitly (as is done in actual OpenCL)

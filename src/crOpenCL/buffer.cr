@@ -23,7 +23,7 @@ module CrOpenCL
 
     # If access allows reading, and the buffer has not been copied,
     # it will be copied directly prior to kernel launch on the kernel's command queue
-    def initialize(@context : Context, @access : Memory, *, hostbuf : (Array(T) | Nil) = nil, length = 0)
+    def initialize(@context : Context, @access : Memory, *, hostbuf : Array(T)? = nil, length = 0)
       # Tested this in the playground: even though kind holds the type of the array element
       # typeof is needed for this to work. It correctly gets the size of the type
       @length = (hostbuf.nil? ? length : hostbuf.size).to_u64
@@ -35,7 +35,7 @@ module CrOpenCL
       raise CLError.new("clCreateBuffer failed.") unless alloc_err == CL_SUCCESS
     end
 
-    def self.enqueue_copy(queue : CommandQueue, hostbuf : Slice(T), devbuf : Buffer, length : UInt64, direction : Transfer, *, blocking = false, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+    def self.enqueue_copy(queue : CommandQueue, hostbuf : Slice(T), devbuf : Buffer, length : UInt64, direction : Transfer, *, blocking = false, event : Event? = nil, event_wait_list : Array(Event)? = nil)
       blocking = blocking ? 1 : 0
       event_wait_list ||= Array(Event).new
       ewl_size = event_wait_list.size
@@ -51,29 +51,29 @@ module CrOpenCL
       end
     end
 
-    def set(queue : CommandQueue, *, hostbuf : Array(T), blocking = false, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+    def set(queue : CommandQueue, *, hostbuf : Array(T), blocking = false, event : Event? = nil, event_wait_list : Array(Event)? = nil)
       slice = Slice(T).new(hostbuf.to_unsafe, hostbuf.size)
       Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event, event_wait_list: event_wait_list)
     end
 
-    def set(queue : CommandQueue, *, blocking = false, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+    def set(queue : CommandQueue, *, blocking = false, event : Event? = nil, event_wait_list : Array(Event)? = nil)
       raise CLError.new("No host buffer to copy.") if @hostbuf.nil?
       slice = Slice(T).new(@hostbuf.as(Array(T)).to_unsafe, @hostbuf.as(Array(T)).size)
       Buffer(T).enqueue_copy(queue, slice, self, slice.size.to_u64, Transfer::ToDevice, blocking: blocking, event: event, event_wait_list: event_wait_list)
     end
 
-    def get(queue : CommandQueue, hostbuf : Array(T), *, blocking : Bool, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+    def get(queue : CommandQueue, hostbuf : Array(T), *, blocking : Bool, event : Event? = nil, event_wait_list : Array(Event)? = nil)
       slice = Slice(T).new(hostbuf.to_unsafe, hostbuf.size)
       Buffer(T).enqueue_copy(queue, slice, self, hostbuf.size.to_u64, Transfer::ToHost, blocking: blocking, event: event, event_wait_list: event_wait_list)
       nil
     end
 
-    def get(queue : CommandQueue, hostbuf : Array(T), *, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+    def get(queue : CommandQueue, hostbuf : Array(T), *, event : Event? = nil, event_wait_list : Array(Event)? = nil)
       get(queue, hostbuf, blocking: true, event: event, event_wait_list: event_wait_list)
       return hostbuf
     end
 
-    def get(queue : CommandQueue, *, event : (Event | Nil) = nil, event_wait_list : (Array(Event) | Nil) = nil)
+    def get(queue : CommandQueue, *, event : Event? = nil, event_wait_list : Array(Event)? = nil)
       if @hostbuf.nil?
         # Doing this instead of creating the array directly gives the array the correct size
         # i.e. the array knows it has @length elements
