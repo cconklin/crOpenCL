@@ -5,4 +5,6 @@ module CrOpenCL
   end
   class ProfilingNotAvailable < CLError
   end
+  class BuildError < CLError
+  end
 end

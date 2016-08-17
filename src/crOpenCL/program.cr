@@ -3,11 +3,6 @@ require "./libOpenCL.cr"
 module CrOpenCL
   class Program
 
-    # TODO: Look up how to correctly subclass Exception in Crystal
-    # TODO: Get error message from OpenCL
-    # class BuildError < CLError
-    # end
-
     getter :context
 
     # Programs get run on a device.
@@ -23,8 +18,15 @@ module CrOpenCL
 
       # Using values from previous OpenCL programs as defaults
       # Probably want to expose these options at some point
-      unless LibOpenCL.clBuildProgram(@program, 0.to_u32, nil, nil, nil, nil) == CL_SUCCESS
-        raise CLError.new("clBuildProgram failed.")
+      device_id_list = [@context.device.to_unsafe]
+      unless LibOpenCL.clBuildProgram(@program, device_id_list.size.to_u32, device_id_list, nil, nil, nil) == CL_SUCCESS
+        stat = LibOpenCL.clGetProgramBuildInfo(@program, device_id_list[0], CL_PROGRAM_BUILD_LOG, 0, nil, out build_info_len)
+        raise BuildError.new("clBuildProgram failed.") unless stat == CL_SUCCESS
+        build_info_buffer = Slice(UInt8).new(build_info_len)
+        stat = LibOpenCL.clGetProgramBuildInfo(@program, device_id_list[0], CL_PROGRAM_BUILD_LOG, build_info_len, build_info_buffer, nil)
+        raise BuildError.new("clBuildProgram failed.") unless stat == CL_SUCCESS
+        message = String.new build_info_buffer
+        raise BuildError.new("clBuildProgram failed: #{message}")
       end
     end
 
