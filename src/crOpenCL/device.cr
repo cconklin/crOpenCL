@@ -2,29 +2,21 @@ require "./libOpenCL"
 
 module CrOpenCL
 
-  enum DeviceTypes
+  enum DeviceTypes : Int64
     CPU = 2
     GPU = 4
     Accelerator = 8
     Default = 1
     All = -1
-
-    def to_unsafe
-      to_i64
-    end
   end
 
-  enum DeviceParameters
+  enum DeviceParameters : Int64
     Name = 4139
     DeviceVersion = 4143
     DriverVersion = 4141
     OpenCLVersion = 4157
     MaxComputeUnits = 4098
     MaxWorkGroupSize = 4100
-
-    def to_unsafe
-      to_i64
-    end
   end
 
   class Device

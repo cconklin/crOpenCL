@@ -7,13 +7,9 @@ module CrOpenCL
     getter :device
 
     # Use actual OpenCL properties
-    enum Properties
+    enum Properties : Int64
       Default = 0
       EnableProfiling = 2
-
-      def to_unsafe
-        to_i64
-      end
     end
 
     @command_queue : LibOpenCL::CommandQueue

@@ -1,14 +1,10 @@
 module CrOpenCL
 
   # TODO: Add support for other OpenCL mem flags
-  enum Memory
+  enum Memory : Int64
     ReadOnly = 4
     WriteOnly = 2
     ReadWrite = 1
-
-    def to_unsafe
-      to_i64
-    end
   end
 
   enum Transfer

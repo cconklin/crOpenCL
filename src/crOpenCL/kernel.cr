@@ -2,12 +2,8 @@ require "./libOpenCL.cr"
 
 module CrOpenCL
 
-  enum KernelParams
+  enum KernelParams : Int64
     WorkGroupSize = 4528
-
-    def to_unsafe
-      to_i64
-    end
   end
 
   class Kernel

@@ -1,5 +1,5 @@
 module CrOpenCL
-  enum PlatformParameters
+  enum PlatformParameters : Int64
     Profile = 2304
     Version = 2305
     Name = 2306
