@@ -1,4 +1,4 @@
-# crOpenCL [![Build Status](https://travis-ci.org/cconklin/crOpenCL.svg?branch=master)](https://travis-ci.org/cconklin/crOpenCL)
+# crOpenCL
 
 OpenCL Bindings fo Crystal
 
