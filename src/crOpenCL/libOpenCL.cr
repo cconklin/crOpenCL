@@ -1,17 +1,4 @@
 module CrOpenCL
-  CL_SUCCESS = 0
-  CL_INVALID_EVENT = -58
-  CL_PROFILING_INFO_NOT_AVAILABLE = -7
-  CL_PROFILING_COMMAND_QUEUED = 4736i64
-  CL_PROFILING_COMMAND_SUBMIT = 4737i64
-  CL_PROFILING_COMMAND_START = 4738i64
-  CL_PROFILING_COMMAND_END = 4739i64
-  CL_EVENT_COMMAND_EXECUTION_STATUS = 4563i64
-  CL_PROGRAM_BUILD_LOG = 4483
-  CL_COMPLETE = 0
-  CL_RUNNING = 1
-  CL_SUBMITTED = 2
-  CL_QUEUED = 3
 
   @[Link(framework: "OpenCL")]
   lib LibOpenCL
@@ -26,6 +13,20 @@ module CrOpenCL
     alias Event = Void*
     alias Sampler = Void*
 
+    # Constants
+    CL_SUCCESS = 0
+    CL_INVALID_EVENT = -58
+    CL_PROFILING_INFO_NOT_AVAILABLE = -7
+    CL_PROFILING_COMMAND_QUEUED = 4736i64
+    CL_PROFILING_COMMAND_SUBMIT = 4737i64
+    CL_PROFILING_COMMAND_START = 4738i64
+    CL_PROFILING_COMMAND_END = 4739i64
+    CL_EVENT_COMMAND_EXECUTION_STATUS = 4563i64
+    CL_PROGRAM_BUILD_LOG = 4483
+    CL_COMPLETE = 0
+    CL_RUNNING = 1
+    CL_SUBMITTED = 2
+    CL_QUEUED = 3
 
     # Programs
     fun clCreateProgramWithSource(context : Context, count : UInt32, strings : UInt8**, lengths : UInt8*, errcode_ret : Int32*) : Program
@@ -76,5 +77,9 @@ module CrOpenCL
     fun clGetDeviceIDs(platform : PlatformID, device_type : Int64, num_entries : Int32, devices : DeviceID*, num_devices : UInt32*) : Int32
     # FIXME: param_name is a cl_device_info enum
     fun clGetDeviceInfo(device : DeviceID, param_name : UInt64, param_value_size : UInt64, param_value : Void*, param_value_size_ret : UInt64*) : Int32
+
+    # Platform
+    fun clGetPlatformIDs(num_entries : Int32, platforms : PlatformID*, num_platforms : UInt32*) : Int32
+    fun clGetPlatformInfo(device : PlatformID, param_name : UInt64, param_value_size : UInt64, param_value : Void*, param_value_size_ret : UInt64*) : Int32
   end
 end

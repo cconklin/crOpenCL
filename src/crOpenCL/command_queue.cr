@@ -21,11 +21,11 @@ module CrOpenCL
     # TODO: Add support for poperties
     def initialize(@context : Context, @device : Device, properties = Properties::Default)
       @command_queue = LibOpenCL.clCreateCommandQueue(@context, @device, properties, out err)
-      raise CLError.new("clCreateCommandQueue failed.") unless err == CL_SUCCESS
+      raise CLError.new("clCreateCommandQueue failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
     def synchronize
-      unless LibOpenCL.clFinish(@command_queue) == CL_SUCCESS
+      unless LibOpenCL.clFinish(@command_queue) == LibOpenCL::CL_SUCCESS
         raise CLError.new("clFinish failed.")
       end
     end

@@ -34,7 +34,7 @@ total = 10_000_000
 in1 = Array.new(total) {|x| Random.rand(-10.0...10.0).to_f32 }
 in2 = Array.new(total) {|x| Random.rand(-10.0...10.0).to_f32 }
 
-# Prompts the user to choose a device
+# Prompts the user to choose a platform & device
 context = CrOpenCL.create_some_context
 queue = CrOpenCL::CommandQueue.new context, context.device, CrOpenCL::CommandQueue::Properties::EnableProfiling
 

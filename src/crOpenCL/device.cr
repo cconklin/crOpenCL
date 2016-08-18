@@ -44,12 +44,12 @@ module CrOpenCL
 
       max_compute_units = uninitialized UInt32
       err = LibOpenCL.clGetDeviceInfo(@id, DeviceParameters::MaxComputeUnits, sizeof(UInt32), pointerof(max_compute_units), nil)
-      raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
+      raise CLError.new("clGetDeviceInfo failed.") unless err == LibOpenCL::CL_SUCCESS
       @max_compute_units = max_compute_units
 
       max_work_group_size = uninitialized UInt64
       err = LibOpenCL.clGetDeviceInfo(@id, DeviceParameters::MaxWorkGroupSize, sizeof(UInt64), pointerof(max_work_group_size), nil)
-      raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
+      raise CLError.new("clGetDeviceInfo failed.") unless err == LibOpenCL::CL_SUCCESS
       @max_work_group_size = max_work_group_size
 
       @name = get_info_string(DeviceParameters::Name)
@@ -61,13 +61,13 @@ module CrOpenCL
     private def get_info_string(param : DeviceParameters)
       # Get the size of the C string to be returned from OpenCL
       err = LibOpenCL.clGetDeviceInfo(@id, param, 0, nil, out size)
-      raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
+      raise CLError.new("clGetDeviceInfo failed.") unless err == LibOpenCL::CL_SUCCESS
 
       # Allocate a buffer large enough to hold the string
       str = Slice(UInt8).new(size)
       # Get the value from OpenCL
       err = LibOpenCL.clGetDeviceInfo(@id, param, size, str, nil)
-      raise CLError.new("clGetDeviceInfo failed.") unless err == CL_SUCCESS
+      raise CLError.new("clGetDeviceInfo failed.") unless err == LibOpenCL::CL_SUCCESS
       # C strings are null terminated, Crystal's are not: remove the last character (null terminator)
       # Sometimes the string from OpenCL ends in a space. Strip it away
       return String.new(str[0, size-1]).strip
@@ -77,23 +77,21 @@ module CrOpenCL
       @id
     end
 
-    def self.each(device_type = DeviceTypes::All)
-      # Get devices on platform 0
-      # TODO: support more platforms
-      err = LibOpenCL.clGetDeviceIDs(0.to_u64.as(LibOpenCL::PlatformID), device_type.to_i64, 0, nil, out num_devices)
-      raise CLError.new("clGetDeviceIDs failed.") unless err == CL_SUCCESS
+    def self.each(platform : Platform, device_type = DeviceTypes::All)
+      err = LibOpenCL.clGetDeviceIDs(platform, device_type.to_i64, 0, nil, out num_devices)
+      raise CLError.new("clGetDeviceIDs failed.") unless err == LibOpenCL::CL_SUCCESS
 
       device_ids = Slice(UInt64).new(num_devices)
 
-      err = LibOpenCL.clGetDeviceIDs(0.to_u64.as(LibOpenCL::PlatformID), device_type.to_i64, num_devices, device_ids, nil)
-      raise CLError.new("clGetDeviceIDs failed.") unless err == CL_SUCCESS
+      err = LibOpenCL.clGetDeviceIDs(platform, device_type.to_i64, num_devices, device_ids, nil)
+      raise CLError.new("clGetDeviceIDs failed.") unless err == LibOpenCL::CL_SUCCESS
 
       device_ids.each {|id| yield new(id) }
     end
 
-    def self.all(device_type = DeviceTypes::All)
+    def self.all(platform : Platform, device_type = DeviceTypes::All)
       devices = [] of Device
-      each do |device|
+      each platform do |device|
         devices << device
       end
       devices

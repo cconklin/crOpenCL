@@ -15,7 +15,7 @@ module CrOpenCL
       # clCreateContext expects a C-array (pointer) to devices
       # since we currently only support 1 device per context, just ge a pointer to the device id
       @context = LibOpenCL.clCreateContext(nil, 1, pointerof(device_id), nil, nil, out err)
-      raise CLError.new("clCreateContext failed.") unless err == CL_SUCCESS
+      raise CLError.new("clCreateContext failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
     def to_unsafe
@@ -29,7 +29,15 @@ module CrOpenCL
 
   # Prompt the user to select a device and create a context from that
   def self.create_some_context
-    devices = Device.all
+    platforms = Platform.all
+    puts "Choose Platform:"
+    platforms.each_with_index do |platform, index|
+      puts "[#{index}] #{platform.name}"
+    end
+    print "Choice: "
+    index = (gets || 0).to_i
+    platform = platforms.size > index ? platforms[index] : platforms[0]
+    devices = Device.all platform
     puts "Choose Device:"
     devices.each_with_index do |device, index|
       puts "[#{index}] #{device.name}"

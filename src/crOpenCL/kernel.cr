@@ -14,19 +14,19 @@ module CrOpenCL
 
     def initialize(@program : Program, @name : String)
       @kernel = LibOpenCL.clCreateKernel(@program, @name, out err)
-      raise CLError.new("clCreateKernel failed.") unless err == CL_SUCCESS
+      raise CLError.new("clCreateKernel failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
     def set_argument(index : Int32, mem : LocalMemory)
       mem.default(local_work_group_size)
       err = LibOpenCL.clSetKernelArg(@kernel, index, mem.size, nil)
-      raise CLError.new("clSetKernelArg failed.") unless err == CL_SUCCESS
+      raise CLError.new("clSetKernelArg failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
     def set_argument(index : Int32, value)
       val = value.responds_to?(:to_unsafe) ? value.to_unsafe : value
       err = LibOpenCL.clSetKernelArg(@kernel, index, sizeof(typeof(value)), pointerof(val))
-      raise CLError.new("clSetKernelArg failed.") unless err == CL_SUCCESS
+      raise CLError.new("clSetKernelArg failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
     def to_unsafe
@@ -45,14 +45,14 @@ module CrOpenCL
       ewl_size = event_wait_list.size
       ewl = ewl_size > 0 ? event_wait_list.map(&.to_unsafe_value).to_unsafe : Pointer(Pointer(Void)).null
       err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, 1, nil, pointerof(gws), pointerof(lws), ewl_size, ewl, event)
-      raise CLError.new("clEnqueueNDRangeKernel failed.") unless err == CL_SUCCESS
+      raise CLError.new("clEnqueueNDRangeKernel failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
     def get_work_group_info(param_name : KernelParams)
       # Note: Some other params may have a size different that that of UInt64
       value = uninitialized UInt64
       err = LibOpenCL.clGetKernelWorkGroupInfo(@kernel, @program.device, param_name, sizeof(typeof(value)), pointerof(value), nil)
-      raise CLError.new("clGetKernelWorkGroupInfo failed.") unless err == CL_SUCCESS
+      raise CLError.new("clGetKernelWorkGroupInfo failed.") unless err == LibOpenCL::CL_SUCCESS
       return value
     end
 

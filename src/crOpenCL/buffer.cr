@@ -32,7 +32,7 @@ module CrOpenCL
       @size = @length * sizeof(T)
       # Create the buffer
       @buffer = LibOpenCL.clCreateBuffer(@context, @access, @size.to_u64, nil, out alloc_err)
-      raise CLError.new("clCreateBuffer failed.") unless alloc_err == CL_SUCCESS
+      raise CLError.new("clCreateBuffer failed.") unless alloc_err == LibOpenCL::CL_SUCCESS
     end
 
     def self.enqueue_copy(queue : CommandQueue, hostbuf : Slice(T), devbuf : Buffer, length : UInt64, direction : Transfer, *, blocking = false, event : Event? = nil, event_wait_list : Array(Event)? = nil)
@@ -44,10 +44,10 @@ module CrOpenCL
       ewl = ewl_size > 0 ? event_wait_list.map(&.to_unsafe_value).to_unsafe : Pointer(Pointer(Void)).null
       if direction == Transfer::ToHost
         err = LibOpenCL.clEnqueueReadBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, ewl_size, ewl, event)
-        raise CLError.new("clEnqueueWriteBuffer failed.") unless err == CL_SUCCESS
+        raise CLError.new("clEnqueueWriteBuffer failed.") unless err == LibOpenCL::CL_SUCCESS
       else
         err = LibOpenCL.clEnqueueWriteBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, ewl_size, ewl, event)
-        raise CLError.new("clEnqueueWriteBuffer failed.") unless err == CL_SUCCESS
+        raise CLError.new("clEnqueueWriteBuffer failed.") unless err == LibOpenCL::CL_SUCCESS
       end
     end
 

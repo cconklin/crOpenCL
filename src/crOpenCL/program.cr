@@ -14,17 +14,17 @@ module CrOpenCL
     def initialize(@context : Context, source : String)
       source_buf = source.to_unsafe
       @program = LibOpenCL.clCreateProgramWithSource(@context, 1.to_u32, pointerof(source_buf), nil, out create_program_err)
-      raise CLError.new("clCreateProgramWithSource failed.") unless create_program_err == CL_SUCCESS
+      raise CLError.new("clCreateProgramWithSource failed.") unless create_program_err == LibOpenCL::CL_SUCCESS
 
       # Using values from previous OpenCL programs as defaults
       # Probably want to expose these options at some point
       device_id_list = [@context.device.to_unsafe]
-      unless LibOpenCL.clBuildProgram(@program, device_id_list.size.to_u32, device_id_list, nil, nil, nil) == CL_SUCCESS
-        stat = LibOpenCL.clGetProgramBuildInfo(@program, device_id_list[0], CL_PROGRAM_BUILD_LOG, 0, nil, out build_info_len)
-        raise BuildError.new("clBuildProgram failed.") unless stat == CL_SUCCESS
+      unless LibOpenCL.clBuildProgram(@program, device_id_list.size.to_u32, device_id_list, nil, nil, nil) == LibOpenCL::CL_SUCCESS
+        stat = LibOpenCL.clGetProgramBuildInfo(@program, device_id_list[0], LibOpenCL::CL_PROGRAM_BUILD_LOG, 0, nil, out build_info_len)
+        raise BuildError.new("clBuildProgram failed.") unless stat == LibOpenCL::CL_SUCCESS
         build_info_buffer = Slice(UInt8).new(build_info_len)
-        stat = LibOpenCL.clGetProgramBuildInfo(@program, device_id_list[0], CL_PROGRAM_BUILD_LOG, build_info_len, build_info_buffer, nil)
-        raise BuildError.new("clBuildProgram failed.") unless stat == CL_SUCCESS
+        stat = LibOpenCL.clGetProgramBuildInfo(@program, device_id_list[0], LibOpenCL::CL_PROGRAM_BUILD_LOG, build_info_len, build_info_buffer, nil)
+        raise BuildError.new("clBuildProgram failed.") unless stat == LibOpenCL::CL_SUCCESS
         message = String.new build_info_buffer
         raise BuildError.new("clBuildProgram failed: #{message}")
       end
