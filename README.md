@@ -66,7 +66,7 @@ d_in2.set queue, event: xin2
 d_result = CrOpenCL::Buffer(Float32).new(context, CrOpenCL::Memory::WriteOnly, length: total)
 
 # Run program
-program.sum(queue, total, kern, nil, d_result, d_in1, d_in2, total)
+program.sum(queue, {total}, kern, nil, d_result, d_in1, d_in2, total)
 
 # Get result back to host
 result = d_result.get queue, event: xout

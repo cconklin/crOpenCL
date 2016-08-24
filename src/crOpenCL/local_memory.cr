@@ -3,8 +3,11 @@ module CrOpenCL
 
     @elems : Int32
 
+    property :dim
+
     def initialize(elems, *, @auto = false)
       @elems = elems.to_i32
+      @dim = 1
     end
 
     def size
@@ -13,7 +16,7 @@ module CrOpenCL
 
     def default(elems)
       if @auto
-        @elems = elems.to_i32
+        @elems = (elems * dim).to_i32
       end
     end
 

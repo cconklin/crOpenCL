@@ -33,14 +33,18 @@ module CrOpenCL
       LibOpenCL.clReleaseKernel(@kernel)
     end
 
-    def enqueue(queue : CommandQueue, *, global_work_size : Int32, local_work_size : Int32, event : Event? = nil, event_wait_list : Array(Event)? = nil)
-      lws = local_work_size.to_u64
-      gws = global_work_size.to_u64
+    def enqueue(queue : CommandQueue, *, global_work_size : Tuple, local_work_size : Tuple?, event : Event? = nil, event_wait_list : Array(Event)? = nil)
+      gws = global_work_size.to_a.map(&.to_u64)
+      dim = gws.size
+      unless local_work_size.nil?
+        lws = local_work_size.to_a.map(&.to_u64)
+        raise ArgumentError.new("Local work size dimension (#{lws.size}) must equal global work size dimension (#{gws.size})") unless lws.size == gws.size
+      end
       # Doing this rather than make the default argument this to allow for passing nil explicitly (as is done in actual OpenCL)
       event_wait_list ||= Array(Event).new
       ewl_size = event_wait_list.size
       ewl = ewl_size > 0 ? event_wait_list.map(&.to_unsafe_value).to_unsafe : Pointer(Pointer(Void)).null
-      err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, 1, nil, pointerof(gws), pointerof(lws), ewl_size, ewl, event)
+      err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, dim, nil, gws, lws, ewl_size, ewl, event)
       raise CLError.new("clEnqueueNDRangeKernel failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
@@ -54,19 +58,6 @@ module CrOpenCL
 
     def local_work_group_size
       get_work_group_info(KernelParams::WorkGroupSize)
-    end
-
-    def automatic_work_group_sizes(requested_gwgs : Int32)
-      max_lwgs = local_work_group_size
-      if requested_gwgs % max_lwgs == 0
-        # they divide each other -- good to go
-        return max_lwgs, requested_gwgs
-      else
-        # Currently making the global work group size larger to be divisible
-        # should the local work group size be made smaller instead? -- easier on programmer but lower performance
-        gwgs = (requested_gwgs / max_lwgs + 1) * max_lwgs
-        return max_lwgs, gwgs
-      end
     end
 
     # method_missing seems to be the only way to get a macro as a method with AST arguments
