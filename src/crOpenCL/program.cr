@@ -11,6 +11,10 @@ module CrOpenCL
       @context.device
     end
 
+    def self.from_file(context, filename)
+      new context, File.read filename
+    end
+
     def initialize(@context : Context, source : String)
       source_buf = source.to_unsafe
       @program = LibOpenCL.clCreateProgramWithSource(@context, 1.to_u32, pointerof(source_buf), nil, out create_program_err)
