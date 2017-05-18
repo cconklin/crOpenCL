@@ -20,8 +20,12 @@ module CrOpenCL
     end
 
     def set_argument(index : Int32, value)
-      val = value.responds_to?(:to_unsafe) ? value.to_unsafe : value
-      err = LibOpenCL.clSetKernelArg(@kernel, index, sizeof(typeof(value)), pointerof(val))
+      if value.responds_to?(:to_unsafe)
+        val = value.to_unsafe # Need to do reference counting on this -- otherwise the GC could destroy value before the kernel is run
+        err = LibOpenCL.clSetKernelArg(@kernel, index, sizeof(typeof(val)), pointerof(val))
+      else
+        err = LibOpenCL.clSetKernelArg(@kernel, index, sizeof(typeof(value)), pointerof(value))
+      end
       raise CLError.new("clSetKernelArg failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
@@ -60,16 +64,10 @@ module CrOpenCL
       get_work_group_info(KernelParams::WorkGroupSize)
     end
 
-    # method_missing seems to be the only way to get a macro as a method with AST arguments
-    macro method_missing(call)
-      {% if call.name == "set_arguments" %}
-        {% for arg, index in call.args %}
-          set_argument({{index}}, {{arg}})
-        {% end %}
-      {% else %}
-        # TODO Find a way to get the source line and file in the error message
-        {{ raise "Invalid kernel method: " + call.name.stringify }}
-      {% end %}
+    def set_arguments(*args)
+      args.each_with_index do |arg, index|
+        set_argument(index, arg)
+      end
     end
   end
 end
