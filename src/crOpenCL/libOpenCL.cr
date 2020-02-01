@@ -1,6 +1,10 @@
 module CrOpenCL
 
+{% if flag? :darwin %}
   @[Link(framework: "OpenCL")]
+{% else %}
+  @[Link("OpenCL")]
+{% end %}
   lib LibOpenCL
     # Investigate actual types in OpenCL
     alias Kernel = Void*
